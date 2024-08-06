@@ -92,4 +92,4 @@ def play_file(filename):
 if __name__ == '__main__':
     if not os.path.exists('static'):
         os.mkdir('static')
-    app.run(host='10.5.52.49', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)
