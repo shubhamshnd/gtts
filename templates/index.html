@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text-to-Speech Converter</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        textarea, input[type="text"] {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        textarea {
+            height: 150px;
+        }
+        #progress-bar {
+            width: 100%;
+            background-color: #f0f0f0;
+            padding: 3px;
+            border-radius: 3px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);
+        }
+        #progress-bar-fill {
+            display: block;
+            height: 22px;
+            background-color: #659cef;
+            border-radius: 3px;
+            transition: width 500ms ease-in-out;
+        }
+        #audio-controls {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Text-to-Speech Converter</h1>
+    <form id="tts-form">
+        <textarea id="text-input" placeholder="Enter your text here"></textarea>
+        <input type="text" id="filename-input" placeholder="Enter filename">
+        <button type="submit">Convert to Speech</button>
+    </form>
+    <br>
+    <div id="progress-bar" style="display: none;">
+        <span id="progress-bar-fill" style="width: 0%;"></span>
+    </div>
+    <p id="status"></p>
+    <div id="audio-controls" style="display: none;">
+        <audio id="audio-player" controls></audio>
+        <br><br>
+        <a id="download-link" href="#" download>Download MP3</a>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#tts-form').submit(function(e) {
+                e.preventDefault();
+                var text = $('#text-input').val();
+                var filename = $('#filename-input').val() || 'output.mp3';
+                
+                $.ajax({
+                    url: '/tts',
+                    method: 'POST',
+                    data: { text: text, filename: filename },
+                    success: function(response) {
+                        $('#status').text('Converting...');
+                        $('#progress-bar').show();
+                        $('#audio-controls').hide();
+                        checkProgress(response.filename);
+                    }
+                });
+            });
+
+            function checkProgress(filename) {
+                $.ajax({
+                    url: '/progress',
+                    method: 'GET',
+                    success: function(response) {
+                        var progress = response.progress;
+                        $('#progress-bar-fill').css('width', progress + '%');
+                        
+                        if (progress < 100) {
+                            setTimeout(function() { checkProgress(filename); }, 1000);
+                        } else {
+                            $('#status').text('Conversion complete!');
+                            playAudio(filename);
+                        }
+                    }
+                });
+            }
+
+            function playAudio(filename) {
+                $.ajax({
+                    url: '/play/' + filename,
+                    method: 'GET',
+                    success: function(response) {
+                        var audioPlayer = $('#audio-player');
+                        audioPlayer.attr('src', response.audio_url);
+                        $('#download-link').attr('href', '/download/' + filename);
+                        $('#audio-controls').show();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
