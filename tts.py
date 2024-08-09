@@ -38,7 +38,7 @@ def text_to_speech(text, output_file):
 # Example usage
 text = """
 
-We would like to take this moment to invite श्री अरुण माहेश्वरी JMD and CEO of JSW Infrastructure, to officially launch the Training Management Application. Please join us in cutting the virtual ribbon as we celebrate this important milestone together.
+
 
 """
 
